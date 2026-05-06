@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class Post(BaseModel):
+class PostSchema(BaseModel):
     title: str
     description: str
     text: str

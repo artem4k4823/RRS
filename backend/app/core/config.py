@@ -6,11 +6,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         case_sensitive=False,
         env_file='.env',
-        extra='ignore',
+       
         
     )
     
-    DATABASE_URL: PostgresDsn
+    DATABASE_URL: str
 
 
 settings = Settings()
