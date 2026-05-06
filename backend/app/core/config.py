@@ -8,7 +8,7 @@ class RunConf(BaseModel):
 
 
 class Database(BaseModel):
-    url: PostgresDsn = 'db/url'    
+    database_url: PostgresDsn = 'db/url'    
     
     
 class Settings(BaseSettings):
