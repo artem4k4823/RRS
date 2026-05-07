@@ -2,7 +2,6 @@ from logging import info
 import uvicorn
 from fastapi import FastAPI
 import uvicorn
-
 from app.api_v1.post import router as post_router
 
 app  = FastAPI()
