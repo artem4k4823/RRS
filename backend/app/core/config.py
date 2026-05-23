@@ -10,6 +10,9 @@ class Settings(BaseSettings):
         
     )
     DATABASE_URL: str
+    SECRET_KEY: str
+    EXPIRE_TIME: int
+    ALGORITHM: str
 
 
 settings = Settings()
