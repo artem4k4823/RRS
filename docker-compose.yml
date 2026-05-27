@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  app:
-    image: python:3.11-slim
-    build:
-      context: ./backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://user:password@postgres:5435/meldb
-    networks:
-      - dev
-    ports:
-      - "8000:8000"
-    depends_on:
-      - postgres
+  # app:
+  #   image: python:3.11-slim
+  #   build:
+  #     context: ./backend
+  #   environment:
+  #     DATABASE_URL: postgresql+asyncpg://user:password@postgres:5435/meldb
+  #   networks:
+  #     - dev
+  #   ports:
+  #     - "8082:8080"
+  #   depends_on:
+  #     - postgres
 
   postgres:
     image: postgres:17
@@ -39,9 +39,18 @@ services:
       - dev
     depends_on:
       - postgres
+  redis:
+    image: redis:7-alpine
+    container_name: melwiki_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   dev:

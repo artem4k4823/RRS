@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     EXPIRE_TIME: int
     ALGORITHM: str
+    REDIS_URL: str
+    POST_CACHED_KEY: str
+    CACHE_TTL_SECONDS: int
 
 
 settings = Settings()
