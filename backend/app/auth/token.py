@@ -27,11 +27,8 @@ def decode_jwt(token):
             detail=f'Token invalid: {e}'
         )
 
-
-def create_jwt(data):
-    payload = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes= settings.EXPIRE_TIME)
-    payload.update({'exp': expire})
+   
+    payload.update()
     return encode_jwt(payload)
 
 
@@ -39,21 +36,44 @@ async def get_token(session: AsyncSession, user_id: int):
     stmt = select(Token).where(Token.user_id == user_id)
     result = await session.execute(stmt)
     token = result.scalar_one_or_none()
-    return token    
+    return token  
+
+def create_token(type: str, data:dict, ):
+    data = data.copy()
+    data['TOKEN_TYPE']= type
+    data.update(data)
+    token = encode_jwt(data)
+    return token
+
+def create_refresh_token(user_id: str):
+        expire = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_TIME_DAYS)
+        data = {
+            'sub': str(user_id),
+            'exp': expire,
+            'iat': datetime.utcnow(),
+
+        }
+        
+        return create_token(
+            'refresh',
+            data=data
+        )
+    
+    
+      
 
 async def create_access_token(session: AsyncSession, user_id: int, user_data: Optional[dict] = None):
+    expire_at = datetime.utcnow() + timedelta(minutes=settings.ACCCESS_TOKEN_EXPIRE_MINUTES)
     jwt_data = {
         'sub': str(user_id),
         'type': 'access',
         'iat':  datetime.utcnow().timestamp(),
+        'exp': expire_at
     }
     
-    if user_data:
-        jwt_data.update(user_data)
-        
-    access_token = create_jwt(jwt_data)
+    access_token = create_token('access', jwt_data)
     
-    expire_at = datetime.utcnow() + timedelta(minutes=settings.EXPIRE_TIME)
+    
     
     
     existing_token = await get_token(session=session, user_id=user_id)
@@ -66,8 +86,9 @@ async def create_access_token(session: AsyncSession, user_id: int, user_data: Op
         
         existing_token = Token(
             acces_token=access_token,
+            expire_at=expire_at,
+            refresh_token = create_refresh_token(user_id = user_id),
             user_id=user_id,
-            expire_at=expire_at
         )
         session.add(existing_token)
     
@@ -79,11 +100,13 @@ async def create_access_token(session: AsyncSession, user_id: int, user_data: Op
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        "expires_in": settings.ACCCESS_TOKEN_EXPIRE_MINUTES * 60,
         "expires_at": expire_at.isoformat(),
         
     }
     
+    
+   
     
     
 

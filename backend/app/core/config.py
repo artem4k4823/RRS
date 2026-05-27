@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     )
     DATABASE_URL: str
     SECRET_KEY: str
-    EXPIRE_TIME: int
+    ACCCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_EXPIRE_TIME_DAYS: int
     ALGORITHM: str
     REDIS_URL: str
     POST_CACHED_KEY: str

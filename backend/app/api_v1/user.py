@@ -2,7 +2,7 @@ from typing import Annotated
 from sys import prefix
 from fastapi import APIRouter, Depends
 from app.core.database import db
-from app.crud.user import reg_user
+from app.crud.auth import reg_user
 from app.schemas.user import UserCreate
 from sqlalchemy.ext.asyncio import AsyncSession
 
