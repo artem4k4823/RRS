@@ -1,0 +1,59 @@
+// Alloy configuration for collecting Docker container logs and shipping to Loki
+
+// ── Docker log discovery ────────────────────────────────────────
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+// ── Relabeling: extract container name, image, compose service ──
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container_name"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label  = "stream"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "compose_service"
+  }
+}
+
+// ── Collect logs from discovered containers ─────────────────────
+
+loki.source.docker "default" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.process.docker_logs.receiver]
+}
+
+// ── Process and enrich log entries ──────────────────────────────
+
+loki.process "docker_logs" {
+  forward_to = [loki.write.local.receiver]
+
+  stage.docker {}
+
+  stage.static_labels {
+    values = {
+      source = "docker",
+    }
+  }
+}
+
+// ── Ship logs to Loki ───────────────────────────────────────────
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
