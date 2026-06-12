@@ -17,7 +17,6 @@ async def get_all_posts_crud(session: AsyncSession):
     result = await session.execute(stmt)
     posts = result.scalars().all()
     posts_read = [PostSchema.model_validate(post) for post in posts]
-    
     post_for_cache = [post.model_dump() for post in posts_read]
     cache.set(settings.POST_CACHED_KEY, post_for_cache)
     

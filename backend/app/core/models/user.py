@@ -13,5 +13,5 @@ class User(Base):
     isCreator: Mapped[bool] = mapped_column(default = False, server_default = '0')
     isAdmin: Mapped[bool] = mapped_column(default = False, server_default = '0')
     status: Mapped[bool] = mapped_column(default = True, server_default = '1')
-    tokens: Mapped[list["Token"]] = relationship('Token', back_populates = 'user')
+
     
