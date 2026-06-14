@@ -21,4 +21,5 @@ class RefreshToken(Base):
     token: Mapped[str] = mapped_column(unique = True)
     expire_at: Mapped[datetime]
     created_at: Mapped[datetime] = mapped_column(default = datetime.utcnow)
+    is_revoked: Mapped[bool] = mapped_column(default = False)
     user_username: Mapped[str]

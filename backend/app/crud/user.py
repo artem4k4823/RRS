@@ -12,4 +12,5 @@ async def get_user_by_username(session: AsyncSession, username: str):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail= "Такого пользователя нету")
     return result
         
+
     
