@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     ALGORITHM: str
     REDIS_URL: str
     POST_CACHED_KEY: str
+    URL_CACHED_KEY: str
     CACHE_TTL_SECONDS: int
 
 

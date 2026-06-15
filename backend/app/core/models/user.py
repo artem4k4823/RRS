@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String 
 from app.core.models.base import Base
 if TYPE_CHECKING:
-    from app.core.models import Token    
+    from app.core.models.subscribtion import Subscription
+       
 
 
 class User(Base):
@@ -13,5 +14,10 @@ class User(Base):
     isCreator: Mapped[bool] = mapped_column(default = False, server_default = '0')
     isAdmin: Mapped[bool] = mapped_column(default = False, server_default = '0')
     status: Mapped[bool] = mapped_column(default = True, server_default = '1')
+    
+    subscriptions: Mapped[List["Subscription"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",  
+    )
 
     
