@@ -26,4 +26,4 @@ async def add_subs(
     url: AddSubSchema
     ):
     await add_feed_url(session=session, sub=url, user_id=current_user.id)
-    return "Успешно добавлено"
+    return {"message": "Успешно добавлено"}

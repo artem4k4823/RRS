@@ -39,8 +39,7 @@ async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
         user_id = user_id,
         feed_url = sub.url,
         custom_name = sub.custom_name,
-        is_active = True
-        
+        is_active = True   
     )
     
     urls = await  get_all_url(session)

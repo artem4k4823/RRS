@@ -6,6 +6,7 @@ from app.api_v1.post import router as post_router
 from app.api_v1.user import router as user_router
 from app.api_v1.auth import router as auth_router
 from app.api_v1.subscribtion import router as sub_router
+from app.api_v1.parser import router as parser_router
 
 app = FastAPI()
 
@@ -33,6 +34,7 @@ app.include_router(post_router)
 app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(sub_router)
+app.include_router(parser_router)
 
 
 if __name__ == '__main__':
