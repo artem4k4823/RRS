@@ -1,11 +1,12 @@
 from app.core.models.base import intpk
 from app.core.models.base import Base
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import Text, ForeignKey, String, Boolean
+from sqlalchemy import ForeignKey, String, Boolean
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from app.core.models.user import User 
+    from app.core.models.post import Post
 
 
 class Subscription(Base):
@@ -18,3 +19,4 @@ class Subscription(Base):
     created_at: Mapped[datetime] = mapped_column(default = datetime.utcnow)
     
     user: Mapped["User"] = relationship(back_populates = 'subscriptions')
+    posts: Mapped[List["Post"]] = relationship(back_populates = 'feed', cascade="all, delete-orphan")

@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     POST_CACHED_KEY: str
     URL_CACHED_KEY: str
     CACHE_TTL_SECONDS: int
+    ADMIN_USERNAME: str
+    ADMIN_PASSWORD: str
 
 
 settings = Settings()

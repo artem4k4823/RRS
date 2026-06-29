@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey, String
 from app.core.models.base import Base
 if TYPE_CHECKING:
     from app.core.models.subscribtion import Subscription
+    from app.core.models.post import Post
        
 
 
@@ -19,5 +20,10 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",  
     )
+    posts: Mapped[List["Post"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
 
     

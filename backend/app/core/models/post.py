@@ -12,7 +12,7 @@ class Post(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
-    link: Mapped[str] = mapped_column(String(1000), unique=True, nullable=False, index=True)  # unique для дедупликации
+    link: Mapped[str] = mapped_column(String(1000), unique=True, nullable=False, index=True)  
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime, index=True)
     

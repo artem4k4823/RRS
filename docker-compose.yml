@@ -1,18 +1,15 @@
 version: '3.8'
 
 services:
-  # app:
-  #   image: python:3.11-slim
-  #   build:
-  #     context: ./backend
-  #   environment:
-  #     DATABASE_URL: postgresql+asyncpg://user:password@postgres:5435/meldb
-  #   networks:
-  #     - dev
-  #   ports:
-  #     - "8082:8080"
-  #   depends_on:
-  #     - postgres
+  app:
+    build: ./backend
+    env_file: ./backend/.env
+    ports:
+      - "8082:8082"
+    networks:
+      - dev
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:17
@@ -47,6 +44,15 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    networks:
+      - dev
+    restart: unless-stopped
+
+  rabitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     networks:
       - dev
     restart: unless-stopped

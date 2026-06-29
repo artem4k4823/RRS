@@ -8,6 +8,6 @@ from fastapi.testclient import  TestClient
 def test_client():
     return TestClient(app)
 
-@pytest.fixture(autouse= True)
+@pytest.fixture(autouse=True)
 def clears_posts():
-    tasks.clear()
+    pass

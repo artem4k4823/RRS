@@ -7,8 +7,8 @@ class AddSubSchema(BaseModel):
     custom_name: str
     
 class SubscriptionResponse(BaseModel):
-   
-    
+    id: int
+    user_id: int
     feed_url: str
     custom_name: Optional[str] = None
     is_active: bool

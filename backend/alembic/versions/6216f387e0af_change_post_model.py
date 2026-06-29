@@ -20,6 +20,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    # Drop the old posts table first
+    op.drop_table('posts')
    
     op.create_table('posts',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -49,4 +51,15 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_posts_link'), table_name='posts')
     op.drop_index(op.f('ix_posts_id'), table_name='posts')
     op.drop_table('posts')
+    
+    # Recreate the old posts table from init migration
+    op.create_table('posts',
+    sa.Column('title', sa.String(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.Column('text', sa.Text(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_posts_id'), 'posts', ['id'], unique=False)
+
    

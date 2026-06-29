@@ -42,10 +42,10 @@ async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
         is_active = True   
     )
     
-    urls = await  get_all_url(session)
+    urls = await get_all_url(session, user_id=user_id)
     if urls is None:
         urls = []
-    if new_url in urls:
+    if any(u.feed_url == sub.url for u in urls):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail = "Вы уже подписаны на это")
     
     
