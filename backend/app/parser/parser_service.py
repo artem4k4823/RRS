@@ -28,12 +28,19 @@ from typing import Dict, Any
 
 class RSSParserService:
     
-    def __init__(self, timeout: int = 10):
+    def __init__(self, timeout: int = 20):
         self.timeout = timeout
     
     async def parse_feed(self, urls: list) -> Dict[str, Any]:
         try:
-            async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=True) as client:
+            async with httpx.AsyncClient(
+                timeout=self.timeout,
+                follow_redirects=True,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/rss+xml, application/xml, text/xml, */*"
+                }
+            ) as client:
                 for url in urls:
                     response = await client.get(url)
                     response.raise_for_status()

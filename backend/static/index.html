@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RRS Dashboard - Панель управления лентами</title>
+    <!-- Google Fonts: Inter and Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon">R</div>
+                <h2>RRS Feed</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" id="nav-dashboard">
+                    <span class="icon">📊</span>
+                    <span class="label">Панель</span>
+                </a>
+                <a href="#feeds" class="nav-item" id="nav-feeds">
+                    <span class="icon">📡</span>
+                    <span class="label">Подписки</span>
+                </a>
+                <a href="#posts" class="nav-item" id="nav-posts">
+                    <span class="icon">📰</span>
+                    <span class="label">Публикации</span>
+                </a>
+                <a href="#create-post" class="nav-item" id="nav-create-post">
+                    <span class="icon">✍️</span>
+                    <span class="label">Создать пост</span>
+                </a>
+                <a href="#profile" class="nav-item" id="nav-profile">
+                    <span class="icon">👤</span>
+                    <span class="label">Профиль</span>
+                </a>
+            </nav>
+            
+            <div class="user-status-widget" id="user-widget">
+                <div class="avatar">U</div>
+                <div class="info">
+                    <span class="username" id="widget-username">Гость</span>
+                    <span class="role" id="widget-role">Не авторизован</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <h1 id="page-title">Обзор панели</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" id="btn-parse-global">
+                        <span class="btn-icon">🔄</span> Парсить ленты
+                    </button>
+                    <button class="btn btn-outline" id="btn-logout" style="display: none;">
+                        Выйти
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Screens -->
+            <div class="screen-container">
+
+                <!-- Auth Screen -->
+                <section id="screen-auth" class="screen" style="display: none;">
+                    <div class="auth-card glass-panel">
+                        <div class="auth-tabs">
+                            <button class="auth-tab active" id="tab-login">Вход</button>
+                            <button class="auth-tab" id="tab-register">Регистрация</button>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form id="form-login" class="auth-form">
+                            <h2>Войдите в аккаунт</h2>
+                            <p class="subtitle">Для управления лентами и просмотра публикаций</p>
+                            
+                            <div class="form-group">
+                                <label for="login-username">Имя пользователя</label>
+                                <input type="text" id="login-username" placeholder="Введите имя пользователя" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="login-password">Пароль</label>
+                                <input type="password" id="login-password" placeholder="Введите пароль" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block">Войти</button>
+                        </form>
+                        
+                        <!-- Register Form -->
+                        <form id="form-register" class="auth-form" style="display: none;">
+                            <h2>Создайте аккаунт</h2>
+                            <p class="subtitle">Присоединяйтесь к RRS Feed</p>
+                            
+                            <div class="form-group">
+                                <label for="register-username">Имя пользователя</label>
+                                <input type="text" id="register-username" placeholder="Выберите имя пользователя" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-password">Пароль</label>
+                                <input type="password" id="register-password" placeholder="Придумайте пароль" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-confirm">Подтвердите пароль</label>
+                                <input type="password" id="register-confirm" placeholder="Повторите пароль" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Dashboard Screen -->
+                <section id="screen-dashboard" class="screen">
+                    <div class="stats-grid">
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon">📡</div>
+                            <div class="stat-details">
+                                <h3 id="stat-feeds-count">0</h3>
+                                <p>Активные подписки</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon">📰</div>
+                            <div class="stat-details">
+                                <h3 id="stat-posts-count">0</h3>
+                                <p>Всего публикаций</p>
+                            </div>
+                        </div>
+                        <div class="stat-card glass-panel">
+                            <div class="stat-icon">👤</div>
+                            <div class="stat-details">
+                                <h3 id="stat-user-status">Гость</h3>
+                                <p>Статус авторизации</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-layout-grid">
+                        <!-- Quick Parsing Block -->
+                        <div class="dashboard-block glass-panel">
+                            <h2>Быстрые действия</h2>
+                            <p>Запуск парсинга обновит ленту для всех ваших подписок и сохранит новые посты в базе данных.</p>
+                            <div class="action-buttons-group">
+                                <button class="btn btn-primary" id="btn-parse-quick">
+                                    🔄 Запустить парсер лент
+                                </button>
+                                <button class="btn btn-outline" id="btn-go-feeds">
+                                    Перейти к подпискам
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- System Info -->
+                        <div class="dashboard-block glass-panel">
+                            <h2>О системе</h2>
+                            <p>Рекомендательно-распределительная система (RRS) позволяет агрегировать RSS-ленты, просматривать публикации в едином интерфейсе и отправлять сообщения о новых постах в шину RabbitMQ.</p>
+                            <div class="system-status">
+                                <div class="status-item">
+                                    <span class="status-dot green"></span>
+                                    <span>FastAPI Backend: 8082 (Active)</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-dot green"></span>
+                                    <span>RabbitMQ Bus: Active</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-dot green"></span>
+                                    <span>Redis Cache: Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Feeds Screen -->
+                <section id="screen-feeds" class="screen" style="display: none;">
+                    <div class="feeds-container">
+                        <!-- Add Subscription Form -->
+                        <div class="glass-panel feed-add-panel">
+                            <h2>Добавить новую подписку</h2>
+                            <form id="form-add-feed" class="inline-form">
+                                <div class="form-group flex-2">
+                                    <label for="feed-url">RSS URL-адрес</label>
+                                    <input type="url" id="feed-url" placeholder="https://example.com/rss.xml" required>
+                                </div>
+                                <div class="form-group flex-1">
+                                    <label for="feed-name">Кастомное имя</label>
+                                    <input type="text" id="feed-name" placeholder="Название ленты" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-submit-inline">Подписаться</button>
+                            </form>
+                        </div>
+
+                        <!-- Subscriptions List -->
+                        <div class="glass-panel list-panel">
+                            <h2>Ваши подписки</h2>
+                            <div class="loading" id="feeds-loading" style="display: none;">Загрузка подписок...</div>
+                            <div class="empty-state" id="feeds-empty" style="display: block;">
+                                <p>У вас еще нет подписок. Добавьте свой первый RSS-источник выше!</p>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="custom-table" id="feeds-table" style="display: none;">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Имя</th>
+                                            <th>URL ленты</th>
+                                            <th>Статус</th>
+                                            <th>Дата создания</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="feeds-list-body">
+                                        <!-- Feed rows go here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Posts Screen -->
+                <section id="screen-posts" class="screen" style="display: none;">
+                    <div class="posts-filters glass-panel">
+                        <div class="search-box">
+                            <input type="text" id="post-search" placeholder="Поиск по заголовку или содержанию...">
+                        </div>
+                        <div class="filter-controls">
+                            <button class="btn btn-outline active" id="filter-all">Все</button>
+                            <button class="btn btn-outline" id="filter-manual">Вручную созданные</button>
+                            <button class="btn btn-outline" id="filter-parsed">Импортированные</button>
+                        </div>
+                    </div>
+
+                    <div class="posts-list-container">
+                        <div class="loading" id="posts-loading" style="display: none;">Загрузка публикаций...</div>
+                        <div class="empty-state" id="posts-empty" style="display: block;">
+                            <p>Посты отсутствуют. Попробуйте обновить/распарсить ленты или добавьте подписки.</p>
+                        </div>
+                        <div class="posts-grid" id="posts-grid">
+                            <!-- Post cards will appear here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Create Post Screen -->
+                <section id="screen-create-post" class="screen" style="display: none;">
+                    <div class="create-post-card glass-panel">
+                        <h2>Создать пост вручную</h2>
+                        <p class="subtitle">Мануальное добавление публикации для проверки отправки в RabbitMQ</p>
+                        
+                        <form id="form-create-post">
+                            <div class="form-group">
+                                <label for="post-feed-id">Связать с подпиской (Feed ID)</label>
+                                <select id="post-feed-id" required>
+                                    <option value="" disabled selected>Выберите ленту</option>
+                                    <!-- Options filled dynamically -->
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="post-title">Заголовок публикации</label>
+                                <input type="text" id="post-title" placeholder="Введите заголовок" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="post-link">Ссылка на источник (URL)</label>
+                                <input type="url" id="post-link" placeholder="https://example.com/my-post" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="post-summary">Краткое содержание (Summary)</label>
+                                <textarea id="post-summary" rows="5" placeholder="Опишите краткое содержание публикации..." required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Создать и отправить в шину</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Profile Screen -->
+                <section id="screen-profile" class="screen" style="display: none;">
+                    <div class="profile-card glass-panel">
+                        <div class="profile-header">
+                            <div class="profile-avatar">👤</div>
+                            <div class="profile-title">
+                                <h2 id="profile-username">Загрузка...</h2>
+                                <span class="badge" id="profile-role-badge">Пользователь</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-details">
+                            <div class="detail-row">
+                                <span class="label">ID пользователя:</span>
+                                <span class="value" id="profile-id">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Создатель (isCreator):</span>
+                                <span class="value" id="profile-is-creator">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Администратор (isAdmin):</span>
+                                <span class="value" id="profile-is-admin">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label">Статус аккаунта:</span>
+                                <span class="value" id="profile-status">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-actions">
+                            <button class="btn btn-outline btn-block" id="btn-profile-logout">Выйти из аккаунта</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toasts Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

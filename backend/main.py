@@ -1,6 +1,9 @@
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, Response
+import os
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -35,6 +38,15 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+# Add CORS middleware to support potential external clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 admin = Admin(app, db.engine, authentication_backend = authentication_backend)
 
 
@@ -48,9 +60,31 @@ Instrumentator(
 ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
-@app.get('/')
+@app.get('/', response_class=HTMLResponse)
 def root():
-    return 'hello world'
+    static_file_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(static_file_path):
+        with open(static_file_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h3>Frontend index.html not found. Please place it in backend/static/index.html</h3>")
+
+
+@app.get('/static/app.js')
+def get_js():
+    js_path = os.path.join(os.path.dirname(__file__), "static", "app.js")
+    if os.path.exists(js_path):
+        with open(js_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="application/javascript")
+    return Response(content="// JS not found", status_code=404)
+
+
+@app.get('/static/style.css')
+def get_css():
+    css_path = os.path.join(os.path.dirname(__file__), "static", "style.css")
+    if os.path.exists(css_path):
+        with open(css_path, "r", encoding="utf-8") as f:
+            return Response(content=f.read(), media_type="text/css")
+    return Response(content="/* CSS not found */", status_code=404)
 
 
 @app.get('/health')

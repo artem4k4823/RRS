@@ -11,8 +11,8 @@ import fastfeedparser
 cache = RedisCacheBackend(settings.REDIS_URL, settings.CACHE_TTL_SECONDS)
 
 async def get_all_url(session: AsyncSession, user_id: int):
-    
-    cached_urls = cache.get(settings.URL_CACHED_KEY)
+    user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
+    cached_urls = cache.get(user_cache_key)
     if cached_urls:
         return [SubscriptionResponse.model_validate(item) for item in cached_urls]
     
@@ -23,7 +23,7 @@ async def get_all_url(session: AsyncSession, user_id: int):
     subscriptions_response = [SubscriptionResponse.model_validate(sub) for sub in subscriptions]
     
     urls_for_cache = [sub.model_dump() for sub in subscriptions_response]
-    cache.set(settings.URL_CACHED_KEY, urls_for_cache)
+    cache.set(user_cache_key, urls_for_cache)
     
     return subscriptions_response
     
@@ -48,8 +48,8 @@ async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
     if any(u.feed_url == sub.url for u in urls):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail = "Вы уже подписаны на это")
     
-    
-    cache.delete(settings.URL_CACHED_KEY)
+    user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
+    cache.delete(user_cache_key)
     
     session.add(new_url)
     await session.commit()
