@@ -1,5 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -9,14 +10,30 @@ from app.auth.Adminauth.admin_auth import authentication_backend
 
 from app.core.database import db
 
+from rabbitmq.rabbitmq import RabbitMQ
+
+from app.core.config import settings
+
 from app.api_v1.post import router as post_router
 from app.api_v1.user import router as user_router
 from app.api_v1.auth import router as auth_router
 from app.api_v1.subscribtion import router as sub_router
 from app.api_v1.parser import router as parser_router
 
+rabbitmq = RabbitMQ(settings.RABBIT_URL)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app:FastAPI):
+    connection = await rabbitmq.connect()
+    channel = await connection.channel()
+    post_exchange = await rabbitmq.declare_post_excange(channel)
+    await rabbitmq.declare_post_queue(channel,post_exchange)
+    app.state.post_exchange = post_exchange
+    
+    yield
+    await connection.close()
+
+app = FastAPI(lifespan=lifespan)
 
 admin = Admin(app, db.engine, authentication_backend = authentication_backend)
 

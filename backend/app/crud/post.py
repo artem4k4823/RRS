@@ -1,3 +1,4 @@
+from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.post import PostSchema
 from app.core.models.post import Post
@@ -23,13 +24,10 @@ async def get_all_posts_crud(session: AsyncSession):
     return posts
 
 
-async def create_post_crud(session: AsyncSession, post: PostSchema):
+async def create_post_crud(session: AsyncSession, post: PostSchema, user_id: int):
     cache.delete(settings.POST_CACHED_KEY)
-    new_post = Post(
-        title = post.title,
-        description = post.description,
-        text = post.text,
-    )
+    new_post = Post(**post.model_dump(), user_id=user_id)
     session.add(new_post)
     await session.commit()
-    return 'Пост создан успешно'
+    await session.refresh(new_post)
+    return new_post
