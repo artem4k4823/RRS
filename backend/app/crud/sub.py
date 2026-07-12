@@ -1,3 +1,4 @@
+from app.core.models import Post
 from fastapi import status
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -5,10 +6,11 @@ from app.schemas.sub import AddSubSchema, SubscriptionResponse
 from app.core.models.subscribtion import Subscription
 from app.cache.redis import RedisCacheBackend
 from app.core.config import settings
-from sqlalchemy import select
+from sqlalchemy import select, delete
 import fastfeedparser
 
 cache = RedisCacheBackend(settings.REDIS_URL, settings.CACHE_TTL_SECONDS)
+
 
 async def get_all_url(session: AsyncSession, user_id: int):
     user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
@@ -28,6 +30,8 @@ async def get_all_url(session: AsyncSession, user_id: int):
     return subscriptions_response
     
 async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
+    user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
+    cache.delete(user_cache_key)
     try:
         feed = fastfeedparser.parse(sub.url)
         if not feed.get('entries', []):
@@ -53,6 +57,14 @@ async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
     
     session.add(new_url)
     await session.commit()
+
+async def delete_sub(session: AsyncSession, sub_id: int, user_id: int):
+    user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
+    cache.delete(user_cache_key)
+    stmt = delete(Subscription).where(Subscription.id == sub_id)
+    await session.execute(stmt)
+    await session.commit()
+    return {"message": "Подписка удалена"}
     
     
     

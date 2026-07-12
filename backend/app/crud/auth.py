@@ -6,7 +6,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.auth.auth_helper import hash_password, verify_password
-from .user import get_user_by_username
+from .admin_operations import get_user_by_username
 from app.core.config import settings
 from datetime import datetime, timedelta
 from app.schemas.token import RefreshTokenRequest, TokenResponse

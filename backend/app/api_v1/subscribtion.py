@@ -4,7 +4,7 @@ from app.core.models import User
 from app.schemas.sub import AddSubSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
-from app.crud.sub import get_all_url, add_feed_url
+from app.crud.sub import get_all_url, add_feed_url, delete_sub
 
 from app.auth.dependencies import get_current_user
 
@@ -27,3 +27,20 @@ async def add_subs(
     ):
     await add_feed_url(session=session, sub=url, user_id=current_user.id)
     return {"message": "Успешно добавлено"}
+
+
+@router.delete('/delete-sub/{sub_id}')
+async def delete_user_sub(
+    session: Annotated[AsyncSession, Depends(db.session_getter)],
+    current_user:Annotated[User, Depends(get_current_user)],
+    url_id: int
+):
+    await delete_sub(session=session, sub_id = url_id, user_id=current_user.id)
+    return {"message":"Подписка была удалён"}
+
+
+
+
+    
+    
+

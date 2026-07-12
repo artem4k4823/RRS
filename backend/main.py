@@ -7,6 +7,10 @@ import os
 
 from prometheus_fastapi_instrumentator import Instrumentator
 
+from sqladmin.widgets import BooleanInputWidget
+# Fix WTForms 3.2+ compatibility issue with SQLAdmin 0.27.2
+BooleanInputWidget.validation_attrs = []
+
 from sqladmin import Admin, ModelView
 from app.core.models.Admin import UserAdmin,PostAdmin,SubscriptionAdmin
 from app.auth.Adminauth.admin_auth import authentication_backend
@@ -22,6 +26,8 @@ from app.api_v1.user import router as user_router
 from app.api_v1.auth import router as auth_router
 from app.api_v1.subscribtion import router as sub_router
 from app.api_v1.parser import router as parser_router
+from app.Deps.deps import router as deps_router
+from app.api_v1.admin import router as admin_router
 
 rabbitmq = RabbitMQ(settings.RABBIT_URL)
 
@@ -38,7 +44,7 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Add CORS middleware to support potential external clients
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -58,6 +64,8 @@ Instrumentator(
     excluded_handlers=["/metrics", "/health"],
     env_var_name="ENABLE_METRICS",
 ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+
+
 
 
 @app.get('/', response_class=HTMLResponse)
@@ -97,6 +105,8 @@ app.include_router(user_router)
 app.include_router(auth_router)
 app.include_router(sub_router)
 app.include_router(parser_router)
+app.include_router(deps_router)
+app.include_router(admin_router)
 
 admin.add_view(UserAdmin)
 admin.add_view(PostAdmin)

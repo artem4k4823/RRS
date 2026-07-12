@@ -14,5 +14,8 @@ async def parse_some_url(session: Annotated[AsyncSession, Depends(db.session_get
     urls = await get_all_url(session=session, user_id=user.id)
     await parse_url(session=session, urls=urls)
     return "удачно"
+
+    
+
     
     

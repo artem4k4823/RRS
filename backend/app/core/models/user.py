@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class User(Base):
     __tablename__ = 'users'
-    username: Mapped[str] = mapped_column(String(length=25),unique = True, nullable = False)
+    username: Mapped[str] = mapped_column(String(length=25),unique = True, nullable = False, index = True)
     password: Mapped[str] = mapped_column(String(length=128), nullable = False)
     isCreator: Mapped[bool] = mapped_column(default = False, server_default = '0')
     isAdmin: Mapped[bool] = mapped_column(default = False, server_default = '0')
