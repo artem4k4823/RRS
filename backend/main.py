@@ -35,9 +35,8 @@ rabbitmq = RabbitMQ(settings.RABBIT_URL)
 async def lifespan(app:FastAPI):
     connection = await rabbitmq.connect()
     channel = await connection.channel()
-    post_exchange = await rabbitmq.declare_post_excange(channel)
-    await rabbitmq.declare_post_queue(channel,post_exchange)
-    app.state.post_exchange = post_exchange
+    url_generator_exchange = await rabbitmq.declare_url_generator_exchange(channel)
+    app.state.URL_GENERATOR_EXCHANGE = url_generator_exchange
     
     yield
     await connection.close()

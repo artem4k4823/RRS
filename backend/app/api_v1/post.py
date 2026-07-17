@@ -40,8 +40,8 @@ async def create_post(
            }
 
     await rabbitmq.publish_json(
-        exchange=request.app.state.post_exchange,
-        routing_key=rabbitmq.POST_ROUTING_KEY,
+        exchange=request.app.state.URL_GENERATOR_EXCHANGE,
+        routing_key=rabbitmq.URL_GENERATOR_ROUTING_KEY,
         data=event_data
     )
     return created_post

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+aio_pika
+feedgen
+beautifulsoup4
+lxml
+aiohttp
+pydantic-settings
+asyncpg

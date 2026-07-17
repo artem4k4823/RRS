@@ -16,6 +16,19 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  link-to-rrs:
+    build: ./link-to-rrs
+    env_file: ./link-to-rrs/.env
+    volumes:
+      - ./link-to-rrs:/app
+    ports:
+      - "8083:8083"
+    networks:
+      - dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
   postgres:
     image: postgres:17
     environment:
