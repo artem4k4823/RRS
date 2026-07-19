@@ -11,7 +11,7 @@ from rabbitmq.rabbitmq import RabbitMQ
 
 from app.auth.dependencies import get_current_user
 
-router = APIRouter(prefix='/api/posts', tags=['Posts'])
+router = APIRouter(prefix='/posts', tags=['Posts'])
 
 rabbitmq = RabbitMQ(settings.RABBIT_URL)
 
@@ -33,16 +33,16 @@ async def create_post(
 ):
     created_post = await create_post_crud(session=session, post=post, user_id=current_user.id)
 
-    event_data ={
-            "id": str(uuid4()),
-            "event": "post.create",
-            "title": created_post.title,
-           }
+    # event_data ={
+    #         "id": str(uuid4()),
+    #         "event": "post.create",
+    #         "title": created_post.title,
+    #        }
 
-    await rabbitmq.publish_json(
-        exchange=request.app.state.URL_GENERATOR_EXCHANGE,
-        routing_key=rabbitmq.URL_GENERATOR_ROUTING_KEY,
-        data=event_data
-    )
+    # await rabbitmq.publish_json(
+    #     exchange=request.app.state.URL_GENERATOR_EXCHANGE,
+    #     routing_key=rabbitmq.URL_GENERATOR_ROUTING_KEY,
+    #     data=event_data
+    # )
     return created_post
     

@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   app:
@@ -17,10 +17,12 @@ services:
         condition: service_healthy
 
   link-to-rrs:
-    build: ./link-to-rrs
-    env_file: ./link-to-rrs/.env
+    build: ./link-to-rss
+    env_file: ./link-to-rss/.env
+    environment:
+      - PYTHONUNBUFFERED=1
     volumes:
-      - ./link-to-rrs:/app
+      - ./link-to-rss:/app
     ports:
       - "8083:8083"
     networks:

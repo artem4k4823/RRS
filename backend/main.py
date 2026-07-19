@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
+import asyncio
 import os
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -28,6 +29,7 @@ from app.api_v1.subscribtion import router as sub_router
 from app.api_v1.parser import router as parser_router
 from app.Deps.deps import router as deps_router
 from app.api_v1.admin import router as admin_router
+from app.api_v1.rss_url import router as rss_generator_router
 
 rabbitmq = RabbitMQ(settings.RABBIT_URL)
 
@@ -37,8 +39,10 @@ async def lifespan(app:FastAPI):
     channel = await connection.channel()
     url_generator_exchange = await rabbitmq.declare_url_generator_exchange(channel)
     app.state.URL_GENERATOR_EXCHANGE = url_generator_exchange
+    asyncio.create_task(rabbitmq.start_listening(channel, url_generator_exchange, rabbitmq.process_result_message))
     
     yield
+
     await connection.close()
 
 app = FastAPI(lifespan=lifespan)
@@ -106,6 +110,7 @@ app.include_router(sub_router)
 app.include_router(parser_router)
 app.include_router(deps_router)
 app.include_router(admin_router)
+app.include_router(rss_generator_router)
 
 admin.add_view(UserAdmin)
 admin.add_view(PostAdmin)

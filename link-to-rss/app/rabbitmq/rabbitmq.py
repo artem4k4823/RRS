@@ -2,6 +2,7 @@ import json
 import asyncio
 import aio_pika
 from aio_pika.abc import AbstractConnection, AbstractChannel, AbstractQueue, AbstractExchange
+from app.rrs_generator.rrs_generator_service import generate_rss_for_url
 
 class RabbitMQConsumer:
     def __init__(self, rabbit_url: str):
@@ -35,9 +36,7 @@ class RabbitMQConsumer:
         queue = await self.connect()
      
         await queue.consume(callback_func)
-        print("[*] Waiting for messages. To exit press CTRL+C")
-   
-        await asyncio.Future() 
+        
     
     async def publish_json(self, exchange_name: str, routing_key: str, data: dict):
         if not self.channel:
@@ -53,23 +52,35 @@ class RabbitMQConsumer:
         if self.connection:
             await self.connection.close()
 
-async def process_message(message: aio_pika.abc.AbstractIncomingMessage):
-    async with message.process():
-     
-        
-        body = message.body.decode()
-        data = json.loads(body)
-        
-        print(f"[x] Получено сообщение: {data}")
-        print(f"ID: {data.get('id')}")
-        print(f"Событие: {data.get('event')}")
-        print(f"Заголовок: {data.get('title')}")
-        
-        
-        url = data.get('url') or data.get('link')
-        if url:
-            print(f"[*] Получен URL из очереди: {url}")
-           
-        else:
-            print("[!] В сообщении не найден URL")
+    async def process_message(self, message: aio_pika.abc.AbstractIncomingMessage):
+        async with message.process():
+            body = message.body.decode()
+            data = json.loads(body)
+            
+            print(f"[x] Получено сообщение: {data}")
+            print(f"ID: {data.get('id')}")
+            print(f"Событие: {data.get('event')}")
+            
+            url = data.get('url') or data.get('link')
+            if url:
+                print(f"[*] Получен URL из очереди: {url}")
+                try:
+            
+                    rss_xml = await generate_rss_for_url(url)
+                    
+                    await self.publish_json(
+                        exchange_name="rss.exchange",
+                        routing_key="rss.result",
+                        data={
+                            "id": data.get("id"),
+                            "url": url,
+                            "xml": rss_xml,
+                            "status": "success"
+                        }
+                    )
+                    print(f"[*] Успешно сгенерирован и отправлен RSS для {url}")
+                except Exception as e:
+                    print(f"[!] Ошибка при обработке URL {url}: {e}")
+            else:
+                print("[!] В сообщении не найден URL")
 

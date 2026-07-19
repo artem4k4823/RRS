@@ -8,8 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Экспортируем порт
+
 EXPOSE 8083
 
-# Запускаем приложение
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8083"]

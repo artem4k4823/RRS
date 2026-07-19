@@ -2,7 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 from contextlib import asynccontextmanager
 import asyncio
-from app.rabbitmq.rabbitmq import RabbitMQConsumer, process_message
+from app.rabbitmq.rabbitmq import RabbitMQConsumer
 from app.core.config import settings
 from app.api_v1.get_rrs import router as rrs_router
 
@@ -12,7 +12,7 @@ rabbitmq = RabbitMQConsumer(settings.RABBIT_URL)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     connection = await rabbitmq.connect()
-    asyncio.create_task(rabbitmq.start_listening(process_message))
+    asyncio.create_task(rabbitmq.start_listening(rabbitmq.process_message))
     yield
 
 
