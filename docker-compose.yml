@@ -1,6 +1,19 @@
 
 
 services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:3000"
+    volumes:
+      - ./frontend:/app
+      
+      - /app/node_modules
+    networks:
+      - dev
+    depends_on:
+      - app
+
   app:
     build: ./backend
     env_file: ./backend/.env
