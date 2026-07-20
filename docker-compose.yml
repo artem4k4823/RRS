@@ -82,7 +82,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Observability Stack ────────────────────────────────────────
 
   prometheus:
     image: prom/prometheus:latest

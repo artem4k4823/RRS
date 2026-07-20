@@ -7,7 +7,8 @@ from app.core.models.subscribtion import Subscription
 from app.cache.redis import RedisCacheBackend
 from app.core.config import settings
 from sqlalchemy import select, delete
-import fastfeedparser
+from app.parser.parser_service import rss_parser_service
+
 
 cache = RedisCacheBackend(settings.REDIS_URL, settings.CACHE_TTL_SECONDS)
 
@@ -33,7 +34,8 @@ async def add_feed_url(session: AsyncSession, sub: AddSubSchema, user_id: int):
     user_cache_key = f"{settings.URL_CACHED_KEY}:{user_id}"
     cache.delete(user_cache_key)
     try:
-        feed = fastfeedparser.parse(sub.url)
+        
+        feed = await rss_parser_service.parse_feed([sub.url])
         if not feed.get('entries', []):
             raise HTTPException(status_code=400, detail="Невалидный RSS или нет записей")
     except Exception as e:
