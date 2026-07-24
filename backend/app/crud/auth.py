@@ -4,7 +4,6 @@ from app.auth.token import create_access_token
 from app.core.models import User
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.auth.auth_helper import hash_password, verify_password
 from .admin_operations import get_user_by_username
 from app.core.config import settings

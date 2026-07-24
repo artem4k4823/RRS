@@ -3,12 +3,12 @@ import datetime
 from app.parsers.habr_parser import get_habr_data
 
 
-async def generate_rss_for_url(url: str, title: str = "Generated RSS Feed", description: str = "Автоматически сгенерированный RSS") -> str:
-   
+async def generate_rss_for_url(url: str, pages: int = 1, title: str = "Generated RSS Feed", description: str = "Автоматически сгенерированный RSS") -> str:
+    
     fg = FeedGenerator()
     
-  
-    articles = await get_habr_data(url)
+    
+    articles = await get_habr_data(url, pages=pages)
     
    
     fg.id(url)

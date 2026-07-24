@@ -1,4 +1,3 @@
-from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.post import PostSchema
 from app.core.models.post import Post

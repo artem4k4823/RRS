@@ -9,8 +9,8 @@ router = APIRouter(prefix='/get-rrs', tags=['RRS-getter'])
 rabbitmq = RabbitMQConsumer(settings.RABBIT_URL)
 
 @router.get('/')
-async def get_rrs(habr_url: str = Depends(verify_habr_url)):
-    rss_xml = await generate_rss_for_url(habr_url)
+async def get_rrs(habr_url: str = Depends(verify_habr_url), pages: int = 1):
+    rss_xml = await generate_rss_for_url(habr_url, pages=pages)
     
    
     await rabbitmq.publish_json(

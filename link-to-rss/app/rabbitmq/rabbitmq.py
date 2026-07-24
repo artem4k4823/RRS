@@ -62,11 +62,12 @@ class RabbitMQConsumer:
             print(f"Событие: {data.get('event')}")
             
             url = data.get('url') or data.get('link')
+            pages = data.get('pages', 1)
             if url:
-                print(f"[*] Получен URL из очереди: {url}")
+                print(f"[*] Получен URL из очереди: {url}, страниц: {pages}")
                 try:
             
-                    rss_xml = await generate_rss_for_url(url)
+                    rss_xml = await generate_rss_for_url(url, pages=pages)
                     
                     await self.publish_json(
                         exchange_name="rss.exchange",

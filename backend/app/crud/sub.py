@@ -1,4 +1,3 @@
-from app.core.models import Post
 from fastapi import status
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession

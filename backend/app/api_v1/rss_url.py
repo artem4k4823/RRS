@@ -1,20 +1,14 @@
 from fastapi import HTTPException, status
-import base64
 from uuid import uuid4
 from app.core.config import settings
-from app.crud.post import create_post_crud, get_all_posts_crud
 from fastapi import APIRouter, Depends, Request
 from app.core.database import db
-from app.core.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.post import PostSchema
 from typing import Annotated
 from rabbitmq.rabbitmq import RabbitMQ
-from app.auth.dependencies import get_current_user
 from app.utils.url_validator import is_valid_url
 import asyncio
 from rabbitmq.rabbitmq import pending_requests
-from app.crud.parser import parse_url
 from fastapi.responses import Response
 from app.cache.redis import RedisCacheBackend
 from app.schemas.url import UrlRequest
@@ -41,7 +35,7 @@ async def send_url_to_generator_service(
     
 
     encoded_url = encode_url(body=body)
-    
+
     base_url = str(request.base_url).rstrip('/')
     rss_link = f"{base_url}{router.prefix}/feed/{encoded_url}"
     
@@ -52,7 +46,9 @@ async def send_url_to_generator_service(
 async def get_rss_feed(encoded_url: str, request: Request):
     
     try:
-        original_url = decode_url(encoded_url=encoded_url)
+        decoded_data = decode_url(encoded_url=encoded_url)
+        original_url = decoded_data["url"]
+        pages = decoded_data.get("pages", 1)
     except Exception:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Неверный формат ссылки")
 
@@ -68,7 +64,8 @@ async def get_rss_feed(encoded_url: str, request: Request):
     event_data = {
         "id": task_id,
         "event": "url.generate.rrs",
-        "url": original_url
+        "url": original_url,
+        "pages": pages
     }
     
     loop = asyncio.get_running_loop()

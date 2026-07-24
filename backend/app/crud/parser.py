@@ -1,11 +1,9 @@
 from datetime import datetime
 import time
-from fastapi import status
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.schemas.sub import AddSubSchema, SubscriptionResponse
-from app.core.models.subscribtion import Subscription
-from app.cache.redis import RedisCacheBackend
+from app.schemas.sub import  SubscriptionResponse
+
+
 from app.core.config import settings
 from app.parser.parser_service import rss_parser_service
 from sqlalchemy import select

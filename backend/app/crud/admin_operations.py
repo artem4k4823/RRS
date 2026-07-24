@@ -1,10 +1,7 @@
-from app.core.models import Subscription
-from app.core.models import Post
 from app.core.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from app.auth.auth_helper import hash_password
 from fastapi import HTTPException, status
 
 
