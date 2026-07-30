@@ -1,3 +1,4 @@
+from fastapi import Request
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -19,6 +20,7 @@ from app.auth.Adminauth.admin_auth import authentication_backend
 from app.core.database import db
 
 from rabbitmq.rabbitmq import RabbitMQ
+from rabbitmq.rabbit_auth_producer import RabbitMQAuthProducer
 
 from app.core.config import settings
 
@@ -32,20 +34,30 @@ from app.api_v1.admin import router as admin_router
 from app.api_v1.rss_url import router as rss_generator_router
 
 rabbitmq = RabbitMQ(settings.RABBIT_URL)
+rabbitmq_auth_producer = RabbitMQAuthProducer(settings.RABBIT_URL)
 
 @asynccontextmanager
 async def lifespan(app:FastAPI):
+    # RSS генератор
     connection = await rabbitmq.connect()
     channel = await connection.channel()
     url_generator_exchange = await rabbitmq.declare_url_generator_exchange(channel)
     app.state.URL_GENERATOR_EXCHANGE = url_generator_exchange
     asyncio.create_task(rabbitmq.start_listening(channel, url_generator_exchange, rabbitmq.process_result_message))
     
+    # Auth service
+    await rabbitmq_auth_producer.connect()
+    app.state.rabbitmq_auth_producer = rabbitmq_auth_producer
+
+
     yield
+    await rabbitmq_auth_producer.close()
 
     await connection.close()
 
 app = FastAPI(lifespan=lifespan)
+
+
 
 
 app.add_middleware(

@@ -6,10 +6,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 from app.auth.dependencies import get_current_user
 from app.schemas.user import UserSchema, UserWithSubsSchema
-from app.crud.admin_operations import get_user_by_id, get_user_with_urls, ban_user, unban_user, delete_sub_of_user
+from app.crud.admin_operations import get_user_by_id, get_user_with_urls, ban_user, unban_user, delete_sub_of_user, get_all_users as get_all_users_crud
 
 
 router = APIRouter(prefix="/admin-operations", tags=['Admin'])
+
+
+
+@router.get('/get-all-users')
+async def get_all_users(
+    session: Annotated[AsyncSession, Depends(db.session_getter)],
+    user: Annotated[User, Depends(get_current_user)]):
+    if not user.isAdmin:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail= "Требует прав администратора")
+    users = await get_all_users_crud(session=session)
+    result = [UserSchema.model_validate(u) for u in users]
+    return result
+
+
+
 
 
 @router.get('/get-user-by-id')

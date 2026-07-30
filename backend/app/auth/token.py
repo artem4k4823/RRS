@@ -4,8 +4,8 @@ import jwt
 from app.core.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.models.token import RefreshToken
-
 from sqlalchemy import select
+from rabbitmq.rabbit_auth_producer import RabbitMQAuthProducer
 
 
 def encode_jwt(payload):
@@ -30,11 +30,16 @@ def decode_jwt(token):
     return encode_jwt(payload)
 
 
-def create_token(type: str, data:dict, ):
+async def create_token(type: str, data:dict,producer: RabbitMQAuthProducer ):
     data = data.copy()
     data['TOKEN_TYPE']= type
     data.update(data)
-    token = encode_jwt(data)
+    await producer.publish(
+        message_data=data,
+        routing_key = "rss.auth.routing.key"
+    )
+    # тут консумер
+    token = "полученный токен"
     return token
 
 async def verify_refresh_token(
