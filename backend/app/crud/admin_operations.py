@@ -5,6 +5,14 @@ from sqlalchemy.orm import selectinload
 from fastapi import HTTPException, status
 
 
+
+async def get_all_users(session: AsyncSession):
+    stmt = select(User)
+    res = await session.execute(stmt)
+    result = res.scalars().all()
+    return result
+
+
 async def get_user_by_username(session: AsyncSession, username: str) -> User:
     stmt = select(User).where(User.username == username)
     res = await session.execute(stmt)

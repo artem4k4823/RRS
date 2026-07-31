@@ -1,3 +1,4 @@
+from rabbitmq.rabbit_auth_producer import get_rabbit_auth_producer, RabbitMQAuthProducer
 from app.schemas.user import UserLogin
 from app.core.config import settings
 from app.core.models import User
@@ -16,11 +17,13 @@ router = APIRouter(prefix='/auth', tags=['Auth'])
 async def login_user(
     session: Annotated[AsyncSession, Depends(db.session_getter)],
     user: UserLogin,
+    producer: Annotated[RabbitMQAuthProducer, Depends(get_rabbit_auth_producer)],
 ):
     tokens = await log_user(
         session=session,
         ent_username=user.username,
         ent_password=user.password,
+        producer=producer,
     )
     return tokens
 
@@ -29,10 +32,12 @@ async def login_user(
 async def refresh_tokens(  
     session: Annotated[AsyncSession, Depends(db.session_getter)],
     refresh_data: RefreshTokenRequest,
+    producer: Annotated[RabbitMQAuthProducer, Depends(get_rabbit_auth_producer)],
 ):
     new_access_token, new_refresh_token = await refresh_tokens_crud(
         session=session, 
         refresh_data=refresh_data,
+        producer=producer,
     )
     
     return TokenResponse(

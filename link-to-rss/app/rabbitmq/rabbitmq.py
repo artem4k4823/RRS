@@ -21,7 +21,8 @@ class RabbitMQConsumer:
        
         exchange = await self.channel.declare_exchange(
             self.RSS_EXCHANGE, 
-            type=aio_pika.ExchangeType.TOPIC
+            type=aio_pika.ExchangeType.TOPIC,
+            durable=True
         )
        
         queue: AbstractQueue = await self.channel.declare_queue(
