@@ -1,15 +1,13 @@
 <div align="center">
 
-  <!-- Логотип или гифка проекта (если есть, укажи путь к изображению) -->
   <img src="https://raw.githubusercontent.com/artem4k4823/RRS/main/assets/logo.png" alt="RRS Logo" width="120" height="120" />
 
   <h1>🚀 RRS</h1>
 
   <p>
-    <b>Современный, производительный и гибкий инструмент для [укажи краткое назначение проекта]</b>
+    <b>Современный, производительный и гибкий инструмент для [укажите суть проекта]</b>
   </p>
 
-  <!-- Интерактивные бейджи -->
   <p>
     <a href="https://github.com/artem4k4823/RRS/stargazers"><img src="https://img.shields.io/github/stars/artem4k4823/RRS?style=for-the-badge&logo=github&color=gold" alt="Stars"></a>
     <a href="https://github.com/artem4k4823/RRS/issues"><img src="https://img.shields.io/github/issues/artem4k4823/RRS?style=for-the-badge&color=red" alt="Issues"></a>
@@ -17,7 +15,6 @@
     <a href="https://github.com/artem4k4823/RRS/releases"><img src="https://img.shields.io/github/v/release/artem4k4823/RRS?style=for-the-badge&color=green" alt="Release"></a>
   </p>
 
-  <!-- Быстрая навигация -->
   <h4>
     <a href="#-о-проекте">О проекте</a> •
     <a href="#-стек-технологий">Стек</a> •
@@ -32,9 +29,9 @@
 
 ## 📌 О проекте
 
-**RRS** — это [подробное описание твоего проекта]. Он предназначен для решения задач [проблема/цель], обеспечивая высокую скорость работы, надежность и удобство использования.
+**RRS** — это [подробное описание вашего проекта]. Он предназначен для решения задач [проблема/цель], обеспечивая высокую скорость работы, надежность и удобство использования.
 
-> 💡 **Идея:** [Краткое пояснение, почему был создан этот проект и в чем его главная фишка].
+> 💡 **Идея:** [Краткое пояснение, почему был создан этот проект].
 
 ---
 
@@ -44,7 +41,6 @@
 
 <p align="center">
   <a href="https://skillicons.dev">
-    <!-- Измени список технологий через запятую: python,js,ts,docker,cpp,go,postgres,redis и т.д. -->
     <img src="https://skillicons.dev/icons?i=python,js,ts,docker,git,github,postgres,redis" alt="Tech Stack" />
   </a>
 </p>
@@ -64,14 +60,59 @@
 
 ### Системные требования
 
-Убедитесь, что у вас установлены:
-- [Git](https://git-scm.com/)
-- [Docker](https://www.docker.com/) *(при необходимости)*
-- Ваше окружение (например, Python 3.10+, Node.js 18+ или Go 1.20+)
+Убедитесь, что у вас установлены [Git](https://git-scm.com/), [Docker](https://www.docker.com/) и ваше рабочее окружение (Python / Node.js / Go и т.д.).
 
 ### Установка и запуск
 
-1. **Клонируйте репозиторий:**
-   ```bash
-   git clone https://github.com/artem4k4823/RRS.git
-   cd RRS
+```bash
+# 1. Клонируйте репозиторий
+git clone https://github.com/artem4k4823/RRS.git
+cd RRS
+
+# 2. Настройте окружение
+cp .env.example .env
+
+# 3. Установите зависимости
+pip install -r requirements.txt
+
+# 4. Запустите проект
+python main.py
+```
+
+---
+
+## 🗺 Дорожная карта (Roadmap)
+
+- [x] Релиз базовой функциональности
+- [x] Настройка конфигурации и окружения
+- [ ] Добавление подробных тестов
+- [ ] Оптимизация архитектуры
+- [ ] CI/CD пайплайн (GitHub Actions)
+
+---
+
+## 🤝 Вклад в проект (Contributing)
+
+Мы всегда рады новым идеям и пулл-реквестам! Если вы хотите внести вклад:
+
+1. Сделайте **Fork** проекта.
+2. Создайте свою ветку фичи (`git checkout -b feature/AmazingFeature`).
+3. Сделайте коммит изменений (`git commit -m 'Add some AmazingFeature'`).
+4. Запушьте изменения (`git push origin feature/AmazingFeature`).
+5. Откройте **Pull Request**.
+
+---
+
+## 📝 Лицензия
+
+Проект распространяется под лицензией **MIT**. Подробнее см. в файле [`LICENSE`](LICENSE).
+
+---
+
+<div align="center">
+
+Разработано с ❤️ от [artem4k4823](https://github.com/artem4k4823)
+
+⭐ *Не забудьте поставить звездочку репозиторию, если проект был вам полезен!*
+
+</div>
