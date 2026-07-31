@@ -1,3 +1,4 @@
+from rabbitmq.rabbit_auth_producer import RabbitMQAuthProducer
 from app.core.models import RefreshToken
 from app.auth.token import create_refresh_token, verify_refresh_token, invalidate_refresh_token
 from app.auth.token import create_access_token
@@ -21,12 +22,17 @@ async def reg_user(session:AsyncSession, username: str, password: str) -> User:
     await session.commit()
     return user
 
-async def log_user(session: AsyncSession, ent_username: str, ent_password: str) -> TokenResponse:
+async def log_user(
+    session: AsyncSession, 
+    ent_username: str, 
+    ent_password: str, 
+    producer: RabbitMQAuthProducer | None = None
+) -> TokenResponse:
     user = await get_user_by_username(session, ent_username)
     if not verify_password(ent_password, user.password):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail = 'Неверный логин или пароль')
-    access_token = create_access_token(user_id=user.id)
-    refresh_token = create_refresh_token(user_id=user.id)
+    access_token = await create_access_token(user_id=user.id, producer=producer)
+    refresh_token = await create_refresh_token(user_id=user.id, producer=producer)
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_TIME_DAYS)
     db_refresh_token = RefreshToken(
         token = refresh_token,
@@ -43,21 +49,16 @@ async def log_user(session: AsyncSession, ent_username: str, ent_password: str) 
         
 async def refresh_tokens_crud(
     session: AsyncSession,
-    refresh_data: RefreshTokenRequest
+    refresh_data: RefreshTokenRequest,
+    producer: RabbitMQAuthProducer | None = None
 ):
-
     refresh_token = refresh_data.refresh_token
     user_id = await verify_refresh_token(session, refresh_token)
     
-   
-    new_access_token = create_access_token(user_id=user_id)
+    new_access_token = await create_access_token(user_id=user_id, producer=producer)
+    new_refresh_token = await create_refresh_token(user_id=user_id, producer=producer)
     
-    
-    new_refresh_token = create_refresh_token(user_id=user_id)
-    
-   
     await invalidate_refresh_token(session, refresh_token)
-    
     
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_TIME_DAYS)
     db_refresh_token = RefreshToken(
@@ -69,6 +70,6 @@ async def refresh_tokens_crud(
     session.add(db_refresh_token)
     await session.commit()
     
-    
-    return new_access_token, new_refresh_token  
+    return new_access_token, new_refresh_token
+  
     

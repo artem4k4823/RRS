@@ -28,6 +28,8 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+      auth-service:
+        condition: service_started
 
   link-to-rrs:
     build: ./link-to-rss
@@ -38,6 +40,21 @@ services:
       - ./link-to-rss:/app
     ports:
       - "8083:8083"
+    networks:
+      - dev
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  auth-service:
+    build: ./auth-service
+    env_file: ./auth-service/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./auth-service:/app
+    ports:
+      - "8084:8084"
     networks:
       - dev
     depends_on:

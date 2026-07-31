@@ -28,7 +28,8 @@ class RabbitMQ:
     async def declare_url_generator_exchange(self, channel:AbstractChannel) -> AbstractExchange:
         return await channel.declare_exchange(
             self.URL_GENERATOR_EXCHANGE,
-            type = aio_pika.ExchangeType.TOPIC
+            type = aio_pika.ExchangeType.TOPIC,
+            durable=True
         )
 
     async def declare_url_generator_queue(

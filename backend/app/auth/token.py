@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 import jwt
@@ -30,23 +31,18 @@ def decode_jwt(token):
     return encode_jwt(payload)
 
 
-async def create_token(type: str, data:dict,producer: RabbitMQAuthProducer ):
+async def create_token(type: str, data: dict, producer: RabbitMQAuthProducer | None = None):
     data = data.copy()
-    data['TOKEN_TYPE']= type
-    data.update(data)
-    await producer.publish(
-        message_data=data,
-        routing_key = "rss.auth.routing.key"
-    )
-    # тут консумер
-    token = "полученный токен"
-    return token
+    data['TOKEN_TYPE'] = type
+    if producer:
+        return await producer.request_token(type, data)
+    return encode_jwt(data)
+
 
 async def verify_refresh_token(
     session: AsyncSession,
     refresh_token: str,
 ):
-    
     if not refresh_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -81,7 +77,6 @@ async def verify_refresh_token(
                 detail="Refresh token has expired"
             )
         
-        
         stmt = select(RefreshToken).where(
             RefreshToken.token == refresh_token,
             RefreshToken.is_revoked == False,
@@ -115,13 +110,11 @@ async def invalidate_refresh_token(
     session: AsyncSession, 
     refresh_token: str
 ):
-    
     stmt = select(RefreshToken).where(RefreshToken.token == refresh_token)
     result = await session.execute(stmt)
     db_token = result.scalar_one_or_none()
     
     if db_token and not db_token.is_revoked:
-        
         db_token.is_revoked = True
         db_token.revoked_at = datetime.utcnow()
         db_token.revoked_reason = "Manual invalidation"
@@ -131,31 +124,35 @@ async def invalidate_refresh_token(
     
     return False
 
-def create_refresh_token(user_id: str):
+
+async def create_refresh_token(user_id: str, producer: RabbitMQAuthProducer | None = None):
     expire = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_TIME_DAYS)
     jwt_data = {
         'sub': str(user_id),
-        'exp': expire,
-        'iat': datetime.utcnow(),
+        'exp': expire.timestamp(),
+        'iat': datetime.utcnow().timestamp(),
     }
 
-    return create_token(
+    return await create_token(
         'refresh',
-        jwt_data
+        jwt_data,
+        producer=producer
     )
     
     
-def create_access_token(user_id: int):
-   
+async def create_access_token(user_id: int, producer: RabbitMQAuthProducer | None = None):
     jwt_data = {
         'sub': str(user_id),
         'type': 'access',
-        'iat':  datetime.utcnow().timestamp(),
+        'iat': datetime.utcnow().timestamp(),
     }
-    return create_token(
+    return await create_token(
         'access', 
-        jwt_data
-        )
+        jwt_data,
+        producer=producer
+    )
+
+
     
     
    
