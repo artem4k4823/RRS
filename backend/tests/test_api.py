@@ -32,7 +32,7 @@ async def test_register_user_success(client: AsyncClient, db_session: AsyncSessi
     assert data["username"] == "testuser_unauth"
     assert "id" in data
 
-   
+    # Проверяем, что пользователь реально сохранился в тестовой БД
     result = await db_session.execute(
         select(User).where(User.username == "testuser_unauth")
     )
@@ -67,3 +67,19 @@ async def test_send_url_for_generate_rss_invalid_url(client: AsyncClient):
     response = await client.post("/generate-rrs-from-url/send-url-for-generate-rss", json=payload)
     assert response.status_code == 400
     assert response.json()["detail"] == "Не подходящий URL"
+
+
+async def test_get_optonal_url_list(auth_client: AsyncClient):
+    """Тест получения списка опциональных ссылок на RSS ленты авторизованным пользователем."""
+    response = await auth_client.get("/optional_url_list/get-all-optionals-urls")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+async def test_get_me_authorized(auth_client: AsyncClient, test_user: User):
+    """Тест получения данных текущего авторизованного пользователя (/auth/me)."""
+    response = await auth_client.get("/auth/me")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == test_user.id
+    assert data["username"] == test_user.username
