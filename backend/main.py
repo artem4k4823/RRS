@@ -32,6 +32,7 @@ from app.api_v1.parser import router as parser_router
 from app.Deps.deps import router as deps_router
 from app.api_v1.admin import router as admin_router
 from app.api_v1.rss_url import router as rss_generator_router
+from app.api_v1.url_list import router as optional_url_list_router
 
 rabbitmq = RabbitMQ(settings.RABBIT_URL)
 rabbitmq_auth_producer = RabbitMQAuthProducer(settings.RABBIT_URL)
@@ -123,6 +124,7 @@ app.include_router(parser_router)
 app.include_router(deps_router)
 app.include_router(admin_router)
 app.include_router(rss_generator_router)
+app.include_router(optional_url_list_router)
 
 admin.add_view(UserAdmin)
 admin.add_view(PostAdmin)
