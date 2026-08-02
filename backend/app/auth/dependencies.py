@@ -14,6 +14,7 @@ from app.core.models import User
 _bearer_scheme = HTTPBearer(auto_error=True)
 
 
+
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer_scheme)],
     session: Annotated[AsyncSession, Depends(db.session_getter)],
@@ -59,4 +60,9 @@ async def get_current_user(
             detail="Аккаунт деактивирован",
         )
 
+    return user
+
+async def isAdmin(user: Annotated[User, Depends(get_current_user)]):
+    if user.isAdmin == False:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail = "Вы не адмнистратор")
     return user
