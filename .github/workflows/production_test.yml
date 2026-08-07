@@ -29,6 +29,10 @@ jobs:
       - name: Start Services & Run Tests
         run: |
           docker compose up -d --build postgres redis rabbitmq
+          until docker compose exec -T postgres pg_isready -U user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
           docker compose run --rm app pytest -v
 
   converge:
