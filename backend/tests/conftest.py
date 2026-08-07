@@ -18,7 +18,12 @@ from app.auth.token import create_access_token
 from app.auth.auth_helper import hash_password
 
 
-TEST_DATABASE_URL = "postgresql+asyncpg://user:password@localhost:5435/test_db"
+import os
+
+DB_HOST = os.getenv("POSTGRES_HOST", "postgres" if os.path.exists("/.dockerenv") else "localhost")
+DB_PORT = os.getenv("POSTGRES_PORT", "5432" if os.path.exists("/.dockerenv") else "5435")
+
+TEST_DATABASE_URL = f"postgresql+asyncpg://user:password@{DB_HOST}:{DB_PORT}/test_db"
 
 
 @pytest.fixture(scope="session")

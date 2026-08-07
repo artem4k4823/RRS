@@ -32,7 +32,6 @@ async def test_register_user_success(client: AsyncClient, db_session: AsyncSessi
     assert data["username"] == "testuser_unauth"
     assert "id" in data
 
-    # Проверяем, что пользователь реально сохранился в тестовой БД
     result = await db_session.execute(
         select(User).where(User.username == "testuser_unauth")
     )
@@ -83,3 +82,25 @@ async def test_get_me_authorized(auth_client: AsyncClient, test_user: User):
     data = response.json()
     assert data["id"] == test_user.id
     assert data["username"] == test_user.username
+
+async def test_add_url_to_sub(auth_client: AsyncClient):
+    """тест на добавление ссылки в избранное где ссылка валидна"""
+    payload = {"url":"https://www.jagonews24.com/rss/rss.xml","custom_name":"test"}
+    response = await auth_client.post("/subscriptions/add-subs", json=payload)
+    assert response.status_code == 200
+
+async def test_add_url_to_sub(auth_client: AsyncClient):
+    """тест на добавление ссылки в избранное где ссылка не валидна"""
+    payload = {"url":"test","custom_name":"test"}
+    response = await auth_client.post("/subscriptions/add-subs", json=payload)
+    assert response.status_code == 400
+    
+
+async def test_get_all_subs(auth_client: AsyncClient):
+    """ Тест получения данных всех подписок пользователя"""
+    respone = await auth_client.get("/subscriptions/get-all-subs")
+    assert respone.status_code == 200
+    data = respone.json()
+    if len(data)> 0:
+        assert isinstance(data[0]["feed_url"], str)
+    
