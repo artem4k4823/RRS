@@ -89,7 +89,7 @@ async def test_add_url_to_sub(auth_client: AsyncClient):
     response = await auth_client.post("/subscriptions/add-subs", json=payload)
     assert response.status_code == 200
 
-async def test_add_url_to_sub(auth_client: AsyncClient):
+async def test_add_url_to_sub_invalid_url(auth_client: AsyncClient):
     """тест на добавление ссылки в избранное где ссылка не валидна"""
     payload = {"url":"test","custom_name":"test"}
     response = await auth_client.post("/subscriptions/add-subs", json=payload)

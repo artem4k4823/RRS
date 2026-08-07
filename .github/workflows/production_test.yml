@@ -1,0 +1,50 @@
+name: CI / Production Deployment
+
+on:
+  push:
+    branches:
+      - master
+      - main
+      - add_ci/cd
+  pull_request:
+    branches:
+      - master
+      - main
+
+jobs:
+  test:
+    name: Run Pytest
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create dummy .env files for CI
+        run: |
+          touch backend/.env
+          touch auth-service/.env
+          touch link-to-rss/.env
+
+      - name: Start Services & Run Tests
+        run: |
+          docker compose up -d --build postgres redis rabbitmq
+          until docker compose exec -T postgres pg_isready -U user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          docker compose run --rm app pytest -v
+
+  converge:
+    name: Converge
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Converge
+        uses: werf/actions/converge@v1.2
