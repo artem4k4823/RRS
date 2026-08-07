@@ -20,6 +20,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create dummy .env files for CI
+        run: |
+          touch backend/.env
+          touch auth-service/.env
+          touch link-to-rss/.env
+
       - name: Start Services & Run Tests
         run: |
           docker compose up -d --build postgres redis rabbitmq
