@@ -32,7 +32,6 @@ async def test_register_user_success(client: AsyncClient, db_session: AsyncSessi
     assert data["username"] == "testuser_unauth"
     assert "id" in data
 
-   
     result = await db_session.execute(
         select(User).where(User.username == "testuser_unauth")
     )
@@ -67,3 +66,41 @@ async def test_send_url_for_generate_rss_invalid_url(client: AsyncClient):
     response = await client.post("/generate-rrs-from-url/send-url-for-generate-rss", json=payload)
     assert response.status_code == 400
     assert response.json()["detail"] == "Не подходящий URL"
+
+
+async def test_get_optonal_url_list(auth_client: AsyncClient):
+    """Тест получения списка опциональных ссылок на RSS ленты авторизованным пользователем."""
+    response = await auth_client.get("/optional_url_list/get-all-optionals-urls")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+
+async def test_get_me_authorized(auth_client: AsyncClient, test_user: User):
+    """Тест получения данных текущего авторизованного пользователя (/auth/me)."""
+    response = await auth_client.get("/auth/me")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == test_user.id
+    assert data["username"] == test_user.username
+
+async def test_add_url_to_sub(auth_client: AsyncClient):
+    """тест на добавление ссылки в избранное где ссылка валидна"""
+    payload = {"url":"https://www.jagonews24.com/rss/rss.xml","custom_name":"test"}
+    response = await auth_client.post("/subscriptions/add-subs", json=payload)
+    assert response.status_code == 200
+
+async def test_add_url_to_sub(auth_client: AsyncClient):
+    """тест на добавление ссылки в избранное где ссылка не валидна"""
+    payload = {"url":"test","custom_name":"test"}
+    response = await auth_client.post("/subscriptions/add-subs", json=payload)
+    assert response.status_code == 400
+    
+
+async def test_get_all_subs(auth_client: AsyncClient):
+    """ Тест получения данных всех подписок пользователя"""
+    respone = await auth_client.get("/subscriptions/get-all-subs")
+    assert respone.status_code == 200
+    data = respone.json()
+    if len(data)> 0:
+        assert isinstance(data[0]["feed_url"], str)
+    
