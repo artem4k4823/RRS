@@ -4,8 +4,11 @@ from app.schemas.post import PostSchema
 
 
 class UserSchema(BaseModel):
+    id: int | None = None
     username: str
     status: bool
+    isAdmin: bool = False
+    isCreator: bool = False
     model_config = ConfigDict(from_attributes=True)
 
 

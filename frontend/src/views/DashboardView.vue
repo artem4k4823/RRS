@@ -29,14 +29,15 @@
             <h3 class="post-title">
               <a :href="post.link" target="_blank" rel="noopener noreferrer">{{ post.title }}</a>
             </h3>
-            <p class="post-meta">{{ new Date(post.published).toLocaleString() }}</p>
+            <p class="post-meta">{{ formatDate(post) }}</p>
             <div class="post-summary" v-html="post.summary"></div>
           </div>
         </div>
       </div>
 
-      <!-- Subscriptions Sidebar -->
-      <div class="subs-sidebar">
+      <!-- Subscriptions & Optional Feeds Sidebar -->
+      <div class="subs-sidebar flex flex-col gap-4">
+        <!-- Subscriptions Card -->
         <div class="card">
           <h3 class="sidebar-title">My Subscriptions</h3>
           <div v-if="loadingSubs" class="text-muted">Loading...</div>
@@ -53,6 +54,24 @@
             </li>
           </ul>
         </div>
+
+        <!-- Optional Feeds (Recommended List) -->
+        <div class="card">
+          <h3 class="sidebar-title">Recommended RSS Feeds</h3>
+          <div v-if="loadingOptionals" class="text-muted">Loading recommendations...</div>
+          <div v-else-if="optionalFeeds.length === 0" class="text-muted">No recommendations available.</div>
+          <ul v-else class="subs-list">
+            <li v-for="feed in optionalFeeds" :key="feed.id || feed.url" class="sub-item">
+              <div style="flex: 1; padding-right: 0.5rem;">
+                <strong>{{ feed.name }}</strong>
+                <div class="sub-url" v-if="feed.description">{{ feed.description }}</div>
+              </div>
+              <button @click="subscribeToOptional(feed)" class="btn btn-secondary btn-sm" :disabled="subLoading">
+                + Add
+              </button>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
@@ -64,14 +83,30 @@ import api from '../services/api'
 
 const posts = ref([])
 const subscriptions = ref([])
+const optionalFeeds = ref([])
 const loadingPosts = ref(true)
 const loadingSubs = ref(true)
+const loadingOptionals = ref(true)
 
 const showAddSub = ref(false)
 const newSubUrl = ref('')
 const newSubName = ref('')
 const subLoading = ref(false)
 const subError = ref('')
+
+const formatDate = (post) => {
+  const rawDate = post.published_at || post.created_at || post.published
+  if (!rawDate) return ''
+  const d = new Date(rawDate)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 
 const fetchPosts = async () => {
   try {
@@ -95,6 +130,17 @@ const fetchSubs = async () => {
   }
 }
 
+const fetchOptionalFeeds = async () => {
+  try {
+    const res = await api.get('/optional_url_list/get-all-optionals-urls')
+    optionalFeeds.value = res.data
+  } catch (err) {
+    console.error('Failed to load optional feeds', err)
+  } finally {
+    loadingOptionals.value = false
+  }
+}
+
 const handleAddSub = async () => {
   subError.value = ''
   subLoading.value = true
@@ -107,9 +153,25 @@ const handleAddSub = async () => {
     newSubName.value = ''
     showAddSub.value = false
     await fetchSubs()
-    // Optionally fetch posts again or wait for backend worker to parse them
+    fetchPosts()
   } catch (err) {
     subError.value = err.response?.data?.detail || 'Failed to add subscription'
+  } finally {
+    subLoading.value = false
+  }
+}
+
+const subscribeToOptional = async (feed) => {
+  subLoading.value = true
+  try {
+    await api.post('/subscriptions/add-subs', {
+      url: feed.url,
+      custom_name: feed.name
+    })
+    await fetchSubs()
+    fetchPosts()
+  } catch (err) {
+    alert(err.response?.data?.detail || 'Failed to add subscription')
   } finally {
     subLoading.value = false
   }
@@ -120,6 +182,7 @@ const handleDeleteSub = async (id) => {
   try {
     await api.delete(`/subscriptions/delete-sub/${id}`)
     await fetchSubs()
+    fetchPosts()
   } catch (err) {
     console.error('Failed to delete sub', err)
   }
@@ -128,6 +191,7 @@ const handleDeleteSub = async (id) => {
 onMounted(() => {
   fetchPosts()
   fetchSubs()
+  fetchOptionalFeeds()
 })
 </script>
 

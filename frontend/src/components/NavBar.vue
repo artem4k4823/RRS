@@ -7,6 +7,7 @@
       <div class="nav-links">
         <router-link to="/">Dashboard</router-link>
         <router-link to="/generator">Generator</router-link>
+        <router-link v-if="isAdmin" to="/admin">Admin Panel</router-link>
         <button @click="logout" class="btn btn-secondary logout-btn">Logout</button>
       </div>
     </div>
@@ -14,13 +15,33 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../services/api'
 
 const router = useRouter()
+const isAdmin = ref(false)
+
+const checkUserAdmin = async () => {
+  try {
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      const res = await api.get('/auth/me')
+      isAdmin.value = !!res.data?.isAdmin
+    }
+  } catch (e) {
+    isAdmin.value = false
+  }
+}
+
+onMounted(() => {
+  checkUserAdmin()
+})
 
 const logout = () => {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
+  isAdmin.value = false
   router.push('/login')
 }
 </script>
