@@ -2,10 +2,12 @@ from pydantic import BaseModel,ConfigDict
 from datetime import datetime
 
 class PostSchema(BaseModel):
+    id: int | None = None
     title: str
     link: str
-    summary: str
-    # published_at: datetime
+    summary: str | None = None
+    published_at: datetime | None = None
+    created_at: datetime | None = None
     feed_id: int
 
     

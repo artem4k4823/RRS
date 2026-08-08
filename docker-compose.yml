@@ -60,6 +60,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_healthy
+  
+  
 
   postgres:
     image: postgres:17
@@ -73,6 +75,20 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - dev
+
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: testrssdb
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - dev
+
 
   pgadmin:
     image: dpage/pgadmin4
@@ -183,6 +199,7 @@ services:
 
 volumes:
   postgres_data:
+  postgres_test_data:
   redis_data:
   prometheus_data:
   loki_data:
