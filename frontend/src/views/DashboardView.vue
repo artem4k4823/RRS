@@ -1,52 +1,70 @@
 <template>
   <div class="container dashboard">
-    <div class="dashboard-header flex items-center justify-between">
-      <h1 class="title">My Feed</h1>
-      <button @click="showAddSub = true" class="btn" v-if="!showAddSub">Add Subscription</button>
+    <div class="dashboard-header flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div>
+        <h1 class="title">My Feed</h1>
+        <p class="text-muted" style="font-size: 0.9rem;">Latest articles and updates from your subscribed RSS sources</p>
+      </div>
+      <button @click="showAddSub = !showAddSub" class="btn btn-accent">
+        {{ showAddSub ? 'Close Form' : '+ Add Subscription' }}
+      </button>
     </div>
 
-    <div v-if="showAddSub" class="card mb-4">
+    <!-- Add Subscription Form Card -->
+    <div v-if="showAddSub" class="card mb-6" style="border-left: 4px solid var(--accent-color);">
+      <h3 style="margin-bottom: 1rem; color: var(--text-main); font-size: 1.1rem;">Subscribe to a Custom RSS Link</h3>
       <form @submit.prevent="handleAddSub" class="flex gap-4 items-center flex-wrap">
-        <input type="url" v-model="newSubUrl" placeholder="Enter RSS URL" required style="flex: 1; min-width: 200px;" />
-        <input type="text" v-model="newSubName" placeholder="Custom Name" required style="flex: 1; min-width: 150px;" />
+        <input type="url" v-model="newSubUrl" placeholder="https://example.com/rss.xml" required style="flex: 2; min-width: 240px;" />
+        <input type="text" v-model="newSubName" placeholder="Source Title" required style="flex: 1; min-width: 160px;" />
         <button type="submit" class="btn" :disabled="subLoading">
           {{ subLoading ? 'Adding...' : 'Subscribe' }}
         </button>
-        <button type="button" @click="showAddSub = false" class="btn btn-secondary">Cancel</button>
       </form>
       <div v-if="subError" class="error-msg mt-4">{{ subError }}</div>
     </div>
 
     <div class="feed-layout">
-      <!-- Posts Feed -->
+      <!-- Main Posts Feed Section -->
       <div class="posts-section">
-        <div v-if="loadingPosts" class="text-muted">Loading your feed...</div>
-        <div v-else-if="posts.length === 0" class="text-muted card">
-          No posts found. Add a subscription to get started.
+        <div v-if="loadingPosts" class="card text-center text-muted">
+          Loading your personalized feed...
+        </div>
+        <div v-else-if="posts.length === 0" class="card text-center empty-feed-card">
+          <h3 style="color: var(--text-main); margin-bottom: 0.5rem;">No posts found</h3>
+          <p class="text-muted" style="max-width: 400px; margin: 0 auto 1.5rem auto;">
+            Your feed is currently empty. Subscribe to custom RSS URLs or select recommended sources on the right.
+          </p>
         </div>
         <div v-else class="posts-list">
-          <div v-for="post in posts" :key="post.id" class="card post-card">
-            <h3 class="post-title">
+          <article v-for="post in posts" :key="post.id || post.link" class="card post-card">
+            <h2 class="post-title">
               <a :href="post.link" target="_blank" rel="noopener noreferrer">{{ post.title }}</a>
-            </h3>
-            <p class="post-meta">{{ formatDate(post) }}</p>
+            </h2>
+            <div class="post-meta">
+              <span class="post-date">{{ formatDate(post) }}</span>
+            </div>
             <div class="post-summary" v-html="post.summary"></div>
-          </div>
+          </article>
         </div>
       </div>
 
-      <!-- Subscriptions & Optional Feeds Sidebar -->
-      <div class="subs-sidebar flex flex-col gap-4">
-        <!-- Subscriptions Card -->
-        <div class="card">
-          <h3 class="sidebar-title">My Subscriptions</h3>
-          <div v-if="loadingSubs" class="text-muted">Loading...</div>
-          <div v-else-if="subscriptions.length === 0" class="text-muted">No subscriptions yet.</div>
+      <!-- Subscriptions Sidebar Section -->
+      <aside class="subs-sidebar">
+        <!-- My Subscriptions Card -->
+        <div class="card sidebar-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="sidebar-title">My Subscriptions</h3>
+            <span class="badge badge-user">{{ subscriptions.length }}</span>
+          </div>
+          <div v-if="loadingSubs" class="text-muted" style="font-size: 0.875rem;">Loading...</div>
+          <div v-else-if="subscriptions.length === 0" class="text-muted" style="font-size: 0.875rem;">
+            No subscriptions added yet.
+          </div>
           <ul v-else class="subs-list">
             <li v-for="sub in subscriptions" :key="sub.id" class="sub-item">
-              <div>
-                <strong>{{ sub.custom_name }}</strong>
-                <div class="sub-url">{{ sub.url }}</div>
+              <div class="sub-info">
+                <strong class="sub-name">{{ sub.custom_name }}</strong>
+                <div class="sub-url" :title="sub.url">{{ sub.url }}</div>
               </div>
               <button @click="handleDeleteSub(sub.id)" class="btn-delete" title="Remove subscription">
                 &times;
@@ -55,24 +73,26 @@
           </ul>
         </div>
 
-        <!-- Optional Feeds (Recommended List) -->
-        <div class="card">
-          <h3 class="sidebar-title">Recommended RSS Feeds</h3>
-          <div v-if="loadingOptionals" class="text-muted">Loading recommendations...</div>
-          <div v-else-if="optionalFeeds.length === 0" class="text-muted">No recommendations available.</div>
+        <!-- Recommended Feeds Card -->
+        <div class="card sidebar-card">
+          <h3 class="sidebar-title mb-4">Recommended Feeds</h3>
+          <div v-if="loadingOptionals" class="text-muted" style="font-size: 0.875rem;">Loading suggestions...</div>
+          <div v-else-if="optionalFeeds.length === 0" class="text-muted" style="font-size: 0.875rem;">
+            No preset feeds configured.
+          </div>
           <ul v-else class="subs-list">
             <li v-for="feed in optionalFeeds" :key="feed.id || feed.url" class="sub-item">
-              <div style="flex: 1; padding-right: 0.5rem;">
-                <strong>{{ feed.name }}</strong>
-                <div class="sub-url" v-if="feed.description">{{ feed.description }}</div>
+              <div class="sub-info">
+                <strong class="sub-name">{{ feed.name }}</strong>
+                <div class="sub-desc" v-if="feed.description">{{ feed.description }}</div>
               </div>
-              <button @click="subscribeToOptional(feed)" class="btn btn-secondary btn-sm" :disabled="subLoading">
+              <button @click="subscribeToOptional(feed)" class="btn btn-secondary btn-sm flex-shrink-0" :disabled="subLoading">
                 + Add
               </button>
             </li>
           </ul>
         </div>
-      </div>
+      </aside>
     </div>
   </div>
 </template>
@@ -96,9 +116,9 @@ const subError = ref('')
 
 const formatDate = (post) => {
   const rawDate = post.published_at || post.created_at || post.published
-  if (!rawDate) return ''
+  if (!rawDate) return 'Recent'
   const d = new Date(rawDate)
-  if (isNaN(d.getTime())) return ''
+  if (isNaN(d.getTime())) return 'Recent'
   return d.toLocaleString('ru-RU', {
     day: 'numeric',
     month: 'short',
@@ -149,11 +169,16 @@ const handleAddSub = async () => {
       url: newSubUrl.value,
       custom_name: newSubName.value 
     })
+    try {
+      await api.post('/parser/parse')
+    } catch (e) {
+      console.warn('Auto parse warning', e)
+    }
     newSubUrl.value = ''
     newSubName.value = ''
     showAddSub.value = false
     await fetchSubs()
-    fetchPosts()
+    await fetchPosts()
   } catch (err) {
     subError.value = err.response?.data?.detail || 'Failed to add subscription'
   } finally {
@@ -168,8 +193,13 @@ const subscribeToOptional = async (feed) => {
       url: feed.url,
       custom_name: feed.name
     })
+    try {
+      await api.post('/parser/parse')
+    } catch (e) {
+      console.warn('Auto parse warning', e)
+    }
     await fetchSubs()
-    fetchPosts()
+    await fetchPosts()
   } catch (err) {
     alert(err.response?.data?.detail || 'Failed to add subscription')
   } finally {
@@ -196,13 +226,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.dashboard-header {
-  margin-bottom: 2rem;
-}
-
 .feed-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 340px;
   gap: 2rem;
   align-items: start;
 }
@@ -214,12 +240,19 @@ onMounted(() => {
 }
 
 .post-card {
-  padding: 1.5rem;
+  padding: 1.75rem;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
 }
 
 .post-title {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.4;
   margin-bottom: 0.5rem;
 }
 
@@ -231,54 +264,104 @@ onMounted(() => {
 }
 
 .post-meta {
-  font-size: 0.875rem;
+  font-size: 0.825rem;
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
 .post-summary {
-  color: var(--text-muted);
-  line-height: 1.6;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.subs-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.sidebar-card {
+  padding: 1.5rem;
 }
 
 .sidebar-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--text-main);
 }
 
 .subs-list {
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .sub-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border-color);
 }
 
 .sub-item:last-child {
   border-bottom: none;
+  padding-bottom: 0;
 }
 
-.sub-url {
-  font-size: 0.875rem;
+.sub-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sub-name {
+  display: block;
+  font-size: 0.925rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sub-url, .sub-desc {
+  font-size: 0.775rem;
   color: var(--text-muted);
-  word-break: break-all;
-  padding-right: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.15rem;
 }
 
 .btn-delete {
-  background: none;
+  background: rgba(239, 68, 68, 0.1);
   color: var(--danger-color);
-  font-size: 1.25rem;
-  padding: 0.25rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
+
 .btn-delete:hover {
-  color: #b91c1c;
+  background: var(--danger-color);
+  color: #fff;
+}
+
+.empty-feed-card {
+  padding: 3rem 2rem;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
 
 .error-msg {
@@ -286,12 +369,9 @@ onMounted(() => {
   font-size: 0.875rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .feed-layout {
     grid-template-columns: 1fr;
-  }
-  .subs-sidebar {
-    order: -1;
   }
 }
 </style>

@@ -9,7 +9,8 @@ from sqlalchemy import select, delete
 cache = RedisCacheBackend(settings.REDIS_URL, settings.CACHE_TTL_SECONDS)
 
 async def get_all_posts_crud(session: AsyncSession, user_id: int):
-    cached_posts = cache.get(settings.POST_CACHED_KEY)
+    user_cache_key = f"{settings.POST_CACHED_KEY}_{user_id}"
+    cached_posts = cache.get(user_cache_key)
     if cached_posts:
         return cached_posts
     
@@ -17,14 +18,14 @@ async def get_all_posts_crud(session: AsyncSession, user_id: int):
     result = await session.execute(stmt)
     posts = result.scalars().all()
     posts_read = [PostSchema.model_validate(post) for post in posts]
-    post_for_cache = [post.model_dump() for post in posts_read]
-    cache.set(settings.POST_CACHED_KEY, post_for_cache)
+    post_for_cache = [post.model_dump(mode='json') for post in posts_read]
+    cache.set(user_cache_key, post_for_cache)
     
     return posts
 
 
 async def create_post_crud(session: AsyncSession, post: PostSchema, user_id: int):
-    cache.delete(settings.POST_CACHED_KEY)
+    cache.delete(f"{settings.POST_CACHED_KEY}_{user_id}")
     new_post = Post(**post.model_dump(), user_id=user_id)
     session.add(new_post)
     await session.commit()
@@ -32,8 +33,8 @@ async def create_post_crud(session: AsyncSession, post: PostSchema, user_id: int
     return new_post
 
 
-async def delete_all_posts(session: AsyncSession,user_id: int):
-    cache.delete(settings.POST_CACHED_KEY)
+async def delete_all_posts(session: AsyncSession, user_id: int):
+    cache.delete(f"{settings.POST_CACHED_KEY}_{user_id}")
     stmt = delete(Post).where(Post.user_id == user_id)
     await session.execute(stmt)
     await session.commit()
