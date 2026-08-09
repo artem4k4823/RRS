@@ -8,6 +8,8 @@ from app.crud.sub import get_all_url, add_feed_url, delete_sub
 
 from app.auth.dependencies import get_current_user
 
+from app.crud.parser import parse_url
+
 router = APIRouter(prefix='/subscriptions', tags=['Subs'])
 
 
@@ -26,6 +28,8 @@ async def add_subs(
     url: AddSubSchema
     ):
     await add_feed_url(session=session, sub=url, user_id=current_user.id)
+    urls = await get_all_url(session=session, user_id=current_user.id)
+    await parse_url(session=session, urls=urls)
     return {"message": "Успешно добавлено"}
 
 

@@ -5,6 +5,7 @@ from app.core.models.base import Base
 if TYPE_CHECKING:
     from app.core.models.subscribtion import Subscription
     from app.core.models.post import Post
+    from app.core.models.favorite_url import FavoriteUrl
        
 
 
@@ -25,5 +26,7 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
-
-    
+    favorite_urls: Mapped[List["FavoriteUrl"]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

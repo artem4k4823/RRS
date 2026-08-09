@@ -1,17 +1,19 @@
 <template>
-  <nav class="navbar">
+  <header class="navbar">
     <div class="container navbar-container">
       <div class="brand">
-        <router-link to="/">RSS Platform</router-link>
+        <router-link to="/" class="brand-link">
+          <span class="brand-text">RSS Platform</span>
+        </router-link>
       </div>
       <div class="nav-links">
         <router-link to="/">Dashboard</router-link>
         <router-link to="/generator">Generator</router-link>
-        <router-link v-if="isAdmin" to="/admin">Admin Panel</router-link>
+        <router-link v-if="isAdmin" to="/admin" class="admin-link">Admin Panel</router-link>
         <button @click="logout" class="btn btn-secondary logout-btn">Logout</button>
       </div>
     </div>
-  </nav>
+  </header>
 </template>
 
 <script setup>
@@ -48,23 +50,34 @@ const logout = () => {
 
 <style scoped>
 .navbar {
-  background-color: var(--surface-color);
+  background: rgba(26, 35, 54, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
-  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .navbar-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
 }
 
-.brand a {
+.brand-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.brand-icon {
+  font-size: 1.35rem;
 }
 
 .nav-links {
@@ -74,22 +87,39 @@ const logout = () => {
 }
 
 .nav-links a {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 0.925rem;
   color: var(--text-muted);
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .nav-links a.router-link-active,
 .nav-links a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-links a.router-link-active {
   color: var(--primary-color);
 }
 
+.admin-link {
+  color: #818cf8 !important;
+}
+
 .logout-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.45rem 1rem;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
   .nav-links {
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+  .brand-text {
+    display: none;
   }
 }
 </style>
