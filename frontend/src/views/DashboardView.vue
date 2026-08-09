@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <!-- Subscriptions Sidebar Section -->
+      <!-- Subscriptions & Favorites Sidebar Section -->
       <aside class="subs-sidebar">
         <!-- My Subscriptions Card -->
         <div class="card sidebar-card">
@@ -73,6 +73,36 @@
           </ul>
         </div>
 
+        <!-- Favorite Feeds Card -->
+        <div class="card sidebar-card">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="sidebar-title flex items-center gap-2">
+              <span>❤️</span> Favorite Feeds
+            </h3>
+            <span class="badge badge-favorite">{{ favorites.length }}</span>
+          </div>
+          <div v-if="loadingFavorites" class="text-muted" style="font-size: 0.875rem;">Loading favorites...</div>
+          <div v-else-if="favorites.length === 0" class="text-muted" style="font-size: 0.875rem;">
+            No favorites added yet. Click ❤️ on recommended feeds below!
+          </div>
+          <ul v-else class="subs-list">
+            <li v-for="fav in favorites" :key="fav.id" class="sub-item">
+              <div class="sub-info" v-if="fav.optional_url">
+                <strong class="sub-name">{{ fav.optional_url.name }}</strong>
+                <div class="sub-desc" v-if="fav.optional_url.description">{{ fav.optional_url.description }}</div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button v-if="fav.optional_url" @click="subscribeToOptional(fav.optional_url)" class="btn btn-secondary btn-sm" :disabled="subLoading" title="Subscribe to this feed">
+                  + Add
+                </button>
+                <button @click="toggleFavorite({ id: fav.url_id })" class="btn-heart active" title="Remove from favorites">
+                  ❤️
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
         <!-- Recommended Feeds Card -->
         <div class="card sidebar-card">
           <h3 class="sidebar-title mb-4">Recommended Feeds</h3>
@@ -83,12 +113,27 @@
           <ul v-else class="subs-list">
             <li v-for="feed in optionalFeeds" :key="feed.id || feed.url" class="sub-item">
               <div class="sub-info">
-                <strong class="sub-name">{{ feed.name }}</strong>
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <strong class="sub-name">{{ feed.name }}</strong>
+                  <span class="likes-badge" title="Likes">
+                    ❤️ {{ feed.likes || 0 }}
+                  </span>
+                </div>
                 <div class="sub-desc" v-if="feed.description">{{ feed.description }}</div>
               </div>
-              <button @click="subscribeToOptional(feed)" class="btn btn-secondary btn-sm flex-shrink-0" :disabled="subLoading">
-                + Add
-              </button>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button 
+                  @click="toggleFavorite(feed)" 
+                  class="btn-heart" 
+                  :class="{ active: isFavorite(feed.id) }" 
+                  :title="isFavorite(feed.id) ? 'Remove from favorites' : 'Add to favorites'"
+                >
+                  {{ isFavorite(feed.id) ? '❤️' : '🤍' }}
+                </button>
+                <button @click="subscribeToOptional(feed)" class="btn btn-secondary btn-sm" :disabled="subLoading">
+                  + Add
+                </button>
+              </div>
             </li>
           </ul>
         </div>
@@ -98,21 +143,32 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 
 const posts = ref([])
 const subscriptions = ref([])
 const optionalFeeds = ref([])
+const favorites = ref([])
+
 const loadingPosts = ref(true)
 const loadingSubs = ref(true)
 const loadingOptionals = ref(true)
+const loadingFavorites = ref(true)
 
 const showAddSub = ref(false)
 const newSubUrl = ref('')
 const newSubName = ref('')
 const subLoading = ref(false)
 const subError = ref('')
+
+const favoriteUrlIds = computed(() => {
+  return new Set(favorites.value.map(f => f.url_id))
+})
+
+const isFavorite = (urlId) => {
+  return favoriteUrlIds.value.has(urlId)
+}
 
 const formatDate = (post) => {
   const rawDate = post.published_at || post.created_at || post.published
@@ -158,6 +214,33 @@ const fetchOptionalFeeds = async () => {
     console.error('Failed to load optional feeds', err)
   } finally {
     loadingOptionals.value = false
+  }
+}
+
+const fetchFavorites = async () => {
+  try {
+    const res = await api.get('/favorites/get-all-favorites')
+    favorites.value = res.data
+  } catch (err) {
+    console.error('Failed to load favorites', err)
+  } finally {
+    loadingFavorites.value = false
+  }
+}
+
+const toggleFavorite = async (feed) => {
+  const isFav = isFavorite(feed.id)
+  try {
+    if (isFav) {
+      await api.delete(`/favorites/delete-from-favorite/${feed.id}`)
+    } else {
+      await api.post(`/favorites/add-to-favorite/${feed.id}`)
+    }
+    await fetchFavorites()
+    await fetchOptionalFeeds()
+  } catch (err) {
+    console.error('Failed to toggle favorite', err)
+    alert(err.response?.data?.detail || 'Error updating favorites')
   }
 }
 
@@ -222,6 +305,7 @@ onMounted(() => {
   fetchPosts()
   fetchSubs()
   fetchOptionalFeeds()
+  fetchFavorites()
 })
 </script>
 
@@ -355,6 +439,52 @@ onMounted(() => {
   color: #fff;
 }
 
+.btn-heart {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-heart:hover {
+  transform: scale(1.1);
+  background: rgba(244, 63, 94, 0.15);
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.btn-heart.active {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: rgba(244, 63, 94, 0.5);
+}
+
+.likes-badge {
+  font-size: 0.75rem;
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.12);
+  padding: 0.1rem 0.4rem;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.badge-favorite {
+  background: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .empty-feed-card {
   padding: 3rem 2rem;
 }
@@ -375,3 +505,4 @@ onMounted(() => {
   }
 }
 </style>
+
